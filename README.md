@@ -1,6 +1,6 @@
 ## Firewall Simulator
 
-Este projeto em JavaScript simula um firewall que analisa e filtra o tráfego de entrada com base em várias políticas de segurança. O firewall é composto por três componentes principais: um motor de políticas, um firewall e um logger.
+Este projeto em JavaScript simula um firewall que analisa e filtra o tráfego de entrada com base em várias políticas de segurança.
 ## Getting Started
 
 Siga as instruções abaixo para configurar o projeto localmente.
