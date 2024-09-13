@@ -90,8 +90,6 @@ Utilizando a biblioteca **Pandas** em Python, consegui realizar uma análise mai
 
 - A análise da coluna `ClientRequestPath` revelou tentativas de acesso a locais sensíveis ou com potenciais riscos de segurança. Esses padrões indicam possíveis **ataques de injeção de comando** (command injection) ou **tentativas de traversal de diretórios** (directory traversal), onde o invasor tenta acessar áreas protegidas do sistema, além de **tentativas de exploração de vulnerabilidades em aplicações web**.
 
-Com uma análise mais aprofundada, outras falhas de segurança, como **força bruta** e **ataques de enumeração de recursos**, podem ser observadas, revelando mais vulnerabilidades que podem ser exploradas por atacantes. Esses insights são cruciais para o aprimoramento das políticas de segurança e proteção contra ameaças emergentes.
-
 ## Autor
 
 - [Vinicius Cezario Rodrigues](https://www.linkedin.com/in/vinicius-cezario-rodrigues-6704401ab/)
