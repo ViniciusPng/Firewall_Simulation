@@ -22,11 +22,11 @@ class ObsoleteOperatingSystemsRule extends Rule {
 
             for (const obsoleteOS of obsoleteOperatingSystems) {
                 if (osName === obsoleteOS.os && osVersion === obsoleteOS.version) {
-                    return true; // Operating system is obsolete
+                    return true;
                 }
             }
         }
-        return false; // Operating system is not obsolete
+        return false;
     }
 }
 
@@ -41,30 +41,30 @@ class DeviceInformationAbsenceRule extends Rule {
 class MaliciousRequestPathRule extends Rule {
     evaluate(request) {
         const suspiciousPatterns = [
-            /\.{2,}\/|\/\.{2,}/, // matches /../../boot.ini, /../../../etc/passwd, /../../../../windows/system32/cmd.exe
-            /<script.*?>/i, // matches any requests containing <script> tags (case-insensitive)
-            /<.*?>.*?<\/.*?>/i, // matches any requests containing HTML tags (case-insensitive)
-            /\?.*?<.*?>/i, // matches any requests containing URL parameters with HTML tags (case-insensitive)
-            /[;`(]+.*?(DROP|ALTER|CREATE|INSERT|UPDATE|DELETE|SELECT|TRUNCATE).*?;/i, // matches possible SQL injection attacks
-            /\b(UNION|SELECT|FROM|WHERE|JOIN|LIMIT|ORDER BY|GROUP BY|HAVING)\b/i, // matches SQL keywords
-            /(;|<|>|'|")(.*)/, // matches possible XSS attacks using semicolons, angle brackets, quotes, or parentheses
-            /\bjavascript\b/i, // matches requests containing the word "javascript" (case-insensitive)
-            /\balert\b/i, // matches requests containing the word "alert" (case-insensitive)
-            /\bconfirm\b/i, // matches requests containing the word "confirm" (case-insensitive)
-            /\bprompt\b/i, // matches requests containing the word "prompt" (case-insensitive)
-            /\bcmd\b/i, // matches requests containing the word "cmd" (case-insensitive)
-            /\bshell\b/i, // matches requests containing the word "shell" (case-insensitive)
-            /\bexec\b/i, // matches requests containing the word "exec" (case-insensitive)
-            /\b system\b/i, // matches requests containing the word "system" (case-insensitive)
-            /\bcat\b/i, // matches requests containing the word "cat" (case-insensitive)
+            /\.{2,}\/|\/\.{2,}/,
+            /<script.*?>/i,
+            /<.*?>.*?<\/.*?>/i,
+            /\?.*?<.*?>/i,
+            /[;`(]+.*?(DROP|ALTER|CREATE|INSERT|UPDATE|DELETE|SELECT|TRUNCATE).*?;/i,
+            /\b(UNION|SELECT|FROM|WHERE|JOIN|LIMIT|ORDER BY|GROUP BY|HAVING)\b/i,
+            /(;|<|>|'|")(.*)/,
+            /\bjavascript\b/i,
+            /\balert\b/i,
+            /\bconfirm\b/i,
+            /\bprompt\b/i,
+            /\bcmd\b/i,
+            /\bshell\b/i,
+            /\bexec\b/i,
+            /\b system\b/i,
+            /\bcat\b/i,
         ];
 
         for (const pattern of suspiciousPatterns) {
             if (pattern.test(request.ClientRequestPath)) {
-                return true; // Malicious request detected
+                return true;
             }
         }
-        return false; // Request is not malicious
+        return false;
     }
 }
 
@@ -84,17 +84,20 @@ class Policy {
             for (const rule of this.rules) {
                 if (rule.evaluate(request)) {
                     allowed = false;
-                    blockReason = rule.constructor.name; // Get the name of the rule that blocked the request
+                    blockReason = rule.constructor.name;
                     break;
                 }
             }
 
             if (!allowed) {
                 results.push({ action: 'BLOCKED', reason: blockReason, request });
-            } else if (!firewall.isAllowed(request.ClientIP, request.EdgeStartTimestamp)) {
-                results.push({ action: 'BLOCKED_IP', request });
             } else {
-                results.push({ action: 'ALLOWED', request });
+                const { allowed, reason } = firewall.isAllowed(request.ClientIP, request.EdgeStartTimestamp);
+                if (!allowed) {
+                    results.push({ action: 'BLOCKED_IP', reason, request });
+                } else {
+                    results.push({ action: 'ALLOWED', reason, request });
+                }
             }
         });
 
