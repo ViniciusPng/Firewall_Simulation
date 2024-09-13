@@ -8,9 +8,7 @@ class ObsoleteOperatingSystemsRule extends Rule {
     evaluate(request) {
         const obsoleteOperatingSystems = [
             { os: 'iOS', version: '3.2' },
-            { os: 'Linux', version: 'x86_64' },
             { os: 'Windows', version: '98' },
-            { os: 'Windows', version: '2000' },
             { os: 'Mac OS', version: '10.12.5 rv' }
             // Add more obsolete operating systems to this list as needed
         ];
@@ -81,6 +79,19 @@ class Policy {
             let allowed = true;
             let blockReason = '';
 
+            // Verifica se o IP está na whitelist
+            if (firewall.whitelist.has(request.ClientIP)) {
+                results.push({ action: 'ALLOWED', reason: 'Whitelisted', request });
+                return;
+            }
+
+            // Verifica se o IP está na blacklist
+            if (firewall.blacklist.has(request.ClientIP)) {
+                results.push({ action: 'BLOCKED_IP', reason: 'Blacklisted', request });
+                return;
+            }
+
+            // Se o IP não está na whitelist ou blacklist, aplica as políticas
             for (const rule of this.rules) {
                 if (rule.evaluate(request)) {
                     allowed = false;

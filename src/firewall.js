@@ -17,19 +17,15 @@ class Firewall {
         this.logAction(`Added to blacklist: ${identifier}`);
     }
 
-    addToTempBlock(identifier) {
-        const blockTime = new Date();
+    addToTempBlock(identifier, shippingDate) {
+        const date = new Date(shippingDate); // Parse shippingDate as a Date object
+        const blockTime = date.getTime() + 12 * 60 * 60 * 1000; // Add 12 hours to the shippingDate timestamp
         this.tempBlocks.set(identifier, blockTime);
         this.logAction(`Added to temp block: ${identifier} (blocked for 12 hours)`);
     }
 
     isAllowed(identifier, shippingDate) {
         const action = `Received packet from ${identifier} at ${shippingDate}`;
-
-        if (!this.checkRateLimiting(identifier, shippingDate)) {
-            this.logAction(action, 'blocked', 'rate limiting', shippingDate);
-            return { allowed: false, reason: 'Rate limiting' };
-        }
 
         // Verifica se o IP/hostname está na whitelist
         if (this.whitelist.has(identifier)) {
@@ -41,6 +37,12 @@ class Firewall {
         if (this.blacklist.has(identifier)) {
             this.logAction(action, 'blocked', 'blacklist', shippingDate);
             return { allowed: false, reason: 'Blacklisted' };
+        }
+
+        // Se o IP não está na whitelist ou blacklist, prossegue com as outras verificações
+        if (!this.checkRateLimiting(identifier, shippingDate)) {
+            this.logAction(action, 'blocked', 'rate limiting', shippingDate);
+            return { allowed: false, reason: 'Rate limiting' };
         }
 
         // Verifica se o IP/hostname está na lista de blocks temporarios
@@ -68,6 +70,13 @@ class Firewall {
             const elapsed = (shippingDateMs - historyEntryTimestampMs) / 1000 / 60 / 60;
             if (elapsed < 1) {
                 this.addToTempBlock(identifier, shippingDate); // Bloqueia o IP por 12 horas
+                return false;
+            } else if (this.history.some(entry => entry.action.includes(identifier) && (shippingDateMs - new Date(entry.timestamp).getTime()) / 1000 / 60 / 60 < 1)) {
+                // Verifica se há um pacote enviado na última hora
+                this.addToTempBlock(identifier, shippingDate); // Bloqueia o IP por 12 horas
+                return false;
+            } else if (this.tempBlocks.has(identifier) && (shippingDateMs - this.tempBlocks.get(identifier)) / 1000 / 60 / 60 < 12) {
+                // Verifica se o usuário está tentando fazer uma nova requisição durante o período de bloqueio
                 return false;
             }
         }

@@ -15,7 +15,8 @@ blacklist.forEach(item => {
 });
 
 // Lê o tráfego atualizado
-const trafficData = traffic.parseTraffic('./data/csvjson.json');
+// Substituir por csvjson.json para um teste mais rigoroso ou traffic.json para um teste mais detalhado
+const trafficData = traffic.parseTraffic('./data/traffic.json');
 traffic.userAgentAnalyzer(trafficData)
 
 const policyInstance = new Policy();
